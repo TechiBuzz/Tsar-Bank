@@ -1,13 +1,18 @@
-# Imports
+
+#^ +=============================================+ IMPORTS +=============================================+ #
+
 from tkinter import *
 import customtkinter as ctk
-from PIL import Image, ImageTk
+from PIL import Image
 import random
 import pickle
 
-# CustomTkinter Settings
+#^ +=========================================+ CUSTOM TKINTER +==========================================+ #
+
 ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('green')
+
+#^ +===========================================+ GOD SECTION +===========================================+ #
 
 # THE HOLY GODLY UPHOLDER (the entire program literally runs on this one single dictionary lol)
 accounts = {}
@@ -24,7 +29,7 @@ while True:
         with open('data.pkl', 'wb') as file:
             pickle.dump({1000000:{'name':'example','password':'examplepassword','age':69,'balance':0}}, file)
 
-# +============================================+ ENTRYPOINT +============================================+ #
+#^ +============================================+ ENTRYPOINT +============================================+ #
 class MainApp(ctk.CTk):
     def __init__(self):
         ctk.CTk.__init__(self) # Call super
@@ -45,7 +50,7 @@ class MainApp(ctk.CTk):
         frame = self.frames[container]
         frame.tkraise()
 
-# +============================================+ MAIN PAGE +============================================+ #
+#^ +============================================+ MAIN PAGE +============================================+ #
 class MainPage(ctk.CTkFrame):
     def __init__(self, parent, container):
         ctk.CTkFrame.__init__(self, parent) # Call super
@@ -80,7 +85,7 @@ class MainPage(ctk.CTkFrame):
                command=lambda: container.show_frame(CreatePage))
         create.place(relx=0.5, rely=0.6, anchor=CENTER)
 
-# +========================================+ LOGIN ACCOUNT PAGE +========================================+ #
+#^ +========================================+ LOGIN ACCOUNT PAGE +========================================+ #
 class LoginPage(ctk.CTkFrame):
 
     def __init__(self, parent, container):
@@ -94,6 +99,9 @@ class LoginPage(ctk.CTkFrame):
         
         # FRAME TO HOLD ALL
         boxframe = ctk.CTkFrame(self, fg_color='transparent', corner_radius=40)
+
+        # BACK BUTTON
+        ButtonManager.create_back_button(self, container)
 
         # LABELS
         accountnum_label = ctk.CTkLabel(boxframe, text='Account Number:', font=labelfont)
@@ -111,16 +119,10 @@ class LoginPage(ctk.CTkFrame):
 
         boxframe.place(relx=0.5,rely=0.45, anchor=CENTER)
 
-        # FRAME TO HOLD SUBMIT AND CLEAR BUTTONS
-        lowerframe = ctk.CTkFrame(self, fg_color='transparent')
-        lowerframe.place(relx=0.5, rely=0.7, anchor=CENTER)
         # CREATING SUBMIT AND CLEAR BUTTONS
-        ButtonManager.create_bottom_buttons(lowerframe, None, [accountnum_entry, password_entry], 320)
+        ButtonManager.create_bottom_buttons(self, None, [accountnum_entry, password_entry], 320, 0.65) # TODO - ADD SUBMIT FUNCTIONALITY
 
-        # BACK BUTTON
-        ButtonManager.create_back_button(self, container)
-    
-# +========================================+ CREATE ACCOUNT PAGE +========================================+ #
+#^ +========================================+ CREATE ACCOUNT PAGE +========================================+ #
 class CreatePage(ctk.CTkFrame):
     def __init__(self, parent, container):
         ctk.CTkFrame.__init__(self, parent)  # Call super
@@ -131,8 +133,7 @@ class CreatePage(ctk.CTkFrame):
         labelfont = ('ADLaM Display', 40, 'bold')
         entryfont = ('Bahnschrift Light', 32, 'bold')
         errorlabel = ctk.CTkLabel(self, text='Error!',font=('Bahnschrift Light', 22))
-        # 'Age must be an integer!'
-        # 'Invalid Username or Password! Don\'t leave anything empty!'
+
         # FRAME TO HOLD ALL
         boxframe = ctk.CTkFrame(self, fg_color='transparent')
 
@@ -191,18 +192,8 @@ class CreatePage(ctk.CTkFrame):
                 AccountManager.create_new_account(username=username, password=password, age=age)
                 container.show_frame(MainPage)
 
-        # # CLEAR BUTTON FUNCTIONALITY
-        # def clear_entries():
-        #     errorlabel.place_forget() # Remove the error label
-        #     username_entry.delete(0, len(username_entry.get())) # Clear username entry box
-        #     password_entry.delete(0, len(password_entry.get())) # Clear password entry box
-        #     age_entry.delete(0, len(age_entry.get())) # Clear age entry box
-
-        # FRAME TO HOLD SUBMIT AND CLEAR BUTTONS
-        lowerframe = ctk.CTkFrame(self, fg_color='transparent')
-        lowerframe.place(relx=0.5, rely=0.7, anchor=CENTER)
         # CREATING SUBMIT AND CLEAR BUTTONS
-        ButtonManager.create_bottom_buttons(lowerframe, submit_create, [username_entry, password_entry, age_entry], 320)     
+        ButtonManager.create_bottom_buttons(self, submit_create, [username_entry, password_entry, age_entry], 320, 0.7)     
 
         # INFORMATICS
         info_icon = ctk.CTkImage(dark_image=Image.open('info.png'))
@@ -212,7 +203,7 @@ class CreatePage(ctk.CTkFrame):
                             image=info_icon, compound=LEFT)
         info.place(relx=0.5, rely=0.9, anchor=CENTER)
 
-# +==========================================+ ACCOUNT MANAGER +==========================================+ #
+#^ +==========================================+ ACCOUNT MANAGER +==========================================+ #
 class AccountManager:
 
     # Method to create new account (its self explanatory)
@@ -230,24 +221,28 @@ class AccountManager:
     def log_into_account(accountnumer, password) -> dict:
         return {}
 
-# +==========================================+ COMMON BUTTONS +==========================================+ #
+#^ +==========================================+ COMMON BUTTONS +==========================================+ #
 
 class ButtonManager:
 
-    def create_bottom_buttons(container, submitcmd, clearentries, width=320):
-
+    def create_bottom_buttons(container, submitcmd, clearentries, width=320, rely=0.5):
         # Clear button functionality
         def clear_entries(entries=clearentries):
             for entry in entries: entry.delete(0, len(entry.get()))
 
-        submit = ctk.CTkButton(container,
+        # Frame to hold
+        lowerframe = ctk.CTkFrame(container, fg_color='transparent')
+        lowerframe.place(relx=0.5, rely=rely, anchor=CENTER)
+
+        # Buttons
+        submit = ctk.CTkButton(lowerframe,
                text='Submit',
                font=('ADLaM Display', 22, 'bold'),
                width=width,
                height=50,
                corner_radius=30,
                command=submitcmd)
-        clear = ctk.CTkButton(container,
+        clear = ctk.CTkButton(lowerframe,
                text='Clear',
                font=('ADLaM Display', 22, 'bold'),
                width=width,
@@ -267,7 +262,7 @@ class ButtonManager:
                command=lambda: main.show_frame(MainPage))
         back.place(relx=0.1, rely=0.1, anchor=CENTER)
 
-# +============================================+ ENTRYPOINT +============================================+ #
+#^ +============================================+ ENTRYPOINT +============================================+ #
 
 if __name__ == "__main__":
     app = MainApp()
