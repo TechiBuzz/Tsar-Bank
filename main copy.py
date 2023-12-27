@@ -101,7 +101,7 @@ class LoginPage(ctk.CTkFrame):
         boxframe = ctk.CTkFrame(self, fg_color='transparent', corner_radius=40)
 
         # BACK BUTTON
-        ButtonManager.create_back_button(self, container, None) # TODO - Add errolabel as arg when done
+        ButtonManager.create_back_button(self, container, None)
 
         # LABELS
         accountnum_label = ctk.CTkLabel(boxframe, text='Account Number:', font=labelfont)
@@ -120,7 +120,7 @@ class LoginPage(ctk.CTkFrame):
         boxframe.place(relx=0.5,rely=0.45, anchor=CENTER)
 
         # CREATING SUBMIT AND CLEAR BUTTONS
-        ButtonManager.create_bottom_buttons(self, None, [accountnum_entry, password_entry], 320, 0.65, None) # TODO - ADD SUBMIT FUNCTIONALITY
+        ButtonManager.create_bottom_buttons(self, None, [accountnum_entry, password_entry], 320, 0.65) # TODO - ADD SUBMIT FUNCTIONALITY
 
 #^ +========================================+ CREATE ACCOUNT PAGE +========================================+ #
 class CreatePage(ctk.CTkFrame):
@@ -133,13 +133,13 @@ class CreatePage(ctk.CTkFrame):
         height = 55
         labelfont = ('ADLaM Display', 40, 'bold')
         entryfont = ('Bahnschrift Light', 32, 'bold')
-        infolabel = ctk.CTkLabel(self, text='Error!',font=('Bahnschrift Light', 22))
+        errorlabel = ctk.CTkLabel(self, text='Error!',font=('Bahnschrift Light', 22))
 
         # FRAME TO HOLD ALL
         boxframe = ctk.CTkFrame(self, fg_color='transparent')
 
         # BACK BUTTON
-        ButtonManager.create_back_button(self, container, infolabel)
+        ButtonManager.create_back_button(self, container, errorlabel)
 
         # LABELS
         username_label = ctk.CTkLabel(boxframe, text='Username:', font=labelfont)
@@ -178,22 +178,19 @@ class CreatePage(ctk.CTkFrame):
 
             # VALIDATION
             if username == '' or password == '' or username.isspace():
-                infolabel.configure(text='⚠️ Invalid Username or Password! Don\'t leave anything empty!')
-                infolabel.place(relx=0.5, rely=0.65, anchor=CENTER)
+                errorlabel.configure(text='⚠️ Invalid Username or Password! Don\'t leave anything empty!')
+                errorlabel.place(relx=0.5, rely=0.65, anchor=CENTER)
             elif not is_valid_username(username):
-                infolabel.configure(text='⚠️ Username cannot contain numbers!')
-                infolabel.place(relx=0.5, rely=0.65, anchor=CENTER)
+                errorlabel.configure(text='⚠️ Username cannot contain numbers!')
+                errorlabel.place(relx=0.5, rely=0.65, anchor=CENTER)
             elif password.__contains__(' '):
-                infolabel.configure(text='⚠️ Password cannot contain whitespaces!')
-                infolabel.place(relx=0.5, rely=0.65, anchor=CENTER)
+                errorlabel.configure(text='⚠️ Password cannot contain whitespaces!')
+                errorlabel.place(relx=0.5, rely=0.65, anchor=CENTER)
             elif not age.isdigit():
-                infolabel.configure(text='⚠️ Age must be an integer!')
-                infolabel.place(relx=0.5, rely=0.65, anchor=CENTER)
-            elif not int(age) >= 18:
-                infolabel.configure(text='⚠️ Minimum age to sign-up is 18 years!')
-                infolabel.place(relx=0.5, rely=0.65, anchor=CENTER)
+                errorlabel.configure(text='⚠️ Age must be an integer!')
+                errorlabel.place(relx=0.5, rely=0.65, anchor=CENTER)
             else:
-                infolabel.place_forget() # Remove the error
+                errorlabel.place_forget() # Remove the error
             
                 username_entry.delete(0, len(username)) # Clear username entry box
                 password_entry.delete(0, len(password)) # Clear password entry box
@@ -204,11 +201,11 @@ class CreatePage(ctk.CTkFrame):
 
                 infotext = 'You account has been successfully created! \n Your account number is: ' + str(accnum)
             
-                infolabel.configure(text=infotext)
-                infolabel.place(relx=0.5, rely=0.66, anchor=CENTER)
+                errorlabel.configure(text=infotext)
+                errorlabel.place(relx=0.5, rely=0.66, anchor=CENTER)
 
         # CREATING SUBMIT AND CLEAR BUTTONS
-        ButtonManager.create_bottom_buttons(self, submit_create, [username_entry, password_entry, age_entry], 320, 0.8, infolabel)     
+        ButtonManager.create_bottom_buttons(self, submit_create, [username_entry, password_entry, age_entry], 320, 0.8)     
 
         # INFORMATICS
         info_icon = ctk.CTkImage(dark_image=Image.open('info.png'))
@@ -242,13 +239,13 @@ class AccountManager:
 
 class ButtonManager:
 
-    def create_bottom_buttons(container, submitcmd, clearentries, width=320, rely=0.5, infolabel=None):
-
+    def create_bottom_buttons(container, submitcmd, clearentries, width=320, rely=0.5, errorlabel=None):
         # Clear button functionality
         def clear_entries(entries=clearentries):
-            for entry in entries: entry.delete(0, len(entry.get()))
-            if infolabel:
-                infolabel.place_forget() # Remove the infolabel
+            for entry in entries:
+                entry.delete(0, len(entry.get()))
+            if errorlabel:
+                errorlabel.place_forget()  # Hide errorlabel
 
         # Frame to hold
         lowerframe = ctk.CTkFrame(container, fg_color='transparent')
@@ -272,19 +269,19 @@ class ButtonManager:
         submit.pack(side=LEFT, padx=10)
         clear.pack(side=RIGHT, padx=10)
 
-    def create_back_button(container, main, infolabel):
+    def create_back_button(container, main, errorlabel=None):
         def go_back():
             main.show_frame(MainPage)
-            if infolabel:
-                infolabel.place_forget() # Remove the infolabel
+            if errorlabel:
+                errorlabel.place_forget()  # Hide errorlabel
 
         back = ctk.CTkButton(container,
-            text='Back',
-            font=('ADLaM Display', 22, 'bold'),
-            width=80,
-            height=50,
-            corner_radius=30,
-            command=go_back)
+               text='Back',
+               font=('ADLaM Display', 22, 'bold'),
+               width=80,
+               height=50,
+               corner_radius=30,
+               command=go_back)
         back.place(relx=0.1, rely=0.1, anchor=CENTER)
 
 #^ +============================================+ ENTRYPOINT +============================================+ #
