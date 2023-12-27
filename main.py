@@ -2,14 +2,30 @@
 from tkinter import *
 import customtkinter as ctk
 from PIL import Image, ImageTk
+import random
+import pickle
 
+# CustomTkinter Settings
 ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('green')
+
+# GLOBAL VARS
+accounts = {}
+# LOAD ACCOUNTS FROM DATA FILE
+while True:
+    try:
+        accounts = pickle.load(open('data.pkl', 'rb'))
+        print('Account data found and imported successfully!')
+        break
+    except FileNotFoundError:
+        print('Account data could not be found, created a new file with default data')
+        with open('data.pkl', 'wb') as file:
+            pickle.dump({1000:{'name':'example','password':'examplepassword','age':69}}, file)
 
 class MainApp(ctk.CTk):
     def __init__(self):
         ctk.CTk.__init__(self) # Call super
-        
+
         self.title('Tsar Bank')
         self.container = ctk.CTkFrame(self)
         self.container.pack(fill="both", expand=True)  # Use the appropriate geometry manager
@@ -61,6 +77,7 @@ class MainPage(ctk.CTkFrame):
         create.place(relx=0.5, rely=0.6, anchor=CENTER)
 
 class LoginPage(ctk.CTkFrame):
+
     def __init__(self, parent, container):
         ctk.CTkFrame.__init__(self, parent)  # Call super
 
@@ -69,6 +86,7 @@ class LoginPage(ctk.CTkFrame):
         height = 55
         labelfont = ('ADLaM Display', 40, 'bold')
         entryfont = ('Bahnschrift Light', 32, 'bold')
+        errorlabel = ctk.CTkLabel(self, text='Username or Password is invalid!',font=('Bahnschrift Light', 22))
 
         # FRAME TO HOLD ALL
         boxframe = ctk.CTkFrame(self, fg_color='transparent', corner_radius=40)
@@ -87,7 +105,7 @@ class LoginPage(ctk.CTkFrame):
         password_entry = ctk.CTkEntry(boxframe, width=width, height=height, font=entryfont, show='*', corner_radius=50)
         password_entry.grid(row=1,column=1, pady=8)
 
-        boxframe.place(relx=0.5,rely=0.5, anchor=CENTER)
+        boxframe.place(relx=0.5,rely=0.45, anchor=CENTER)
 
         # BACK BUTTON
         back = ctk.CTkButton(self,
@@ -98,6 +116,20 @@ class LoginPage(ctk.CTkFrame):
                corner_radius=30,
                command=lambda: container.show_frame(MainPage))
         back.place(relx=0.1, rely=0.1, anchor=CENTER)
+    
+        # SUBMIT BUTTON FUNCTIONALITY
+        def submit_login():
+            username = username_entry.get()
+            password = password_entry.get()
+            
+            if username == '' or password == '':
+                errorlabel.place(relx=0.5, rely=0.6, anchor=CENTER)
+            else: 
+                errorlabel.place_forget() # Remove the error
+                username_entry.delete(0, len(username)) # Clear username entry box
+                password_entry.delete(0, len(password)) # Clear password entry box
+                AccountManager.create_new_account(username=username, password=password, age=1)
+                print(accounts)
 
         # SUBMIT BUTTON
         submit = ctk.CTkButton(self,
@@ -106,7 +138,7 @@ class LoginPage(ctk.CTkFrame):
                width=500,
                height=50,
                corner_radius=30,
-               command=lambda: container.show_frame(MainPage))
+               command=submit_login)
         submit.place(relx=0.5, rely=0.7, anchor=CENTER)
 
 class CreatePage(ctk.CTkFrame):
@@ -161,6 +193,19 @@ class CreatePage(ctk.CTkFrame):
                             font=('Bahnschrift Light', 16),
                             image=info_icon, compound=LEFT)
         info.place(relx=0.5, rely=0.9, anchor=CENTER)
+
+class AccountManager():
+    def create_new_account(username, password, age: int):
+
+        accountnumber = random.randint(1000, 9999)
+        while accountnumber in accounts.keys():
+            accountnumber = random.randint(1000, 9999)
+        print(accountnumber)
+
+        accounts.update({accountnumber : {'name':username,'password':password,'age':age}})
+
+        with open('data.pkl', 'wb') as file:
+            pickle.dump(accounts, file)
 
 if __name__ == "__main__":
     app = MainApp()
