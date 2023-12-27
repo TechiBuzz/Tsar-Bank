@@ -27,7 +27,7 @@ while True:
     except FileNotFoundError:
         print('Account data could not be found, created a new file with default data')
         with open('data.pkl', 'wb') as file:
-            pickle.dump({1000000:{'name':'example','password':'examplepassword','age':69,'balance':0}}, file)
+            pickle.dump({1000000:{'name':'example','password':'examplepassword','age':69,'balance':69420}}, file)
 
 #^ +============================================+ ENTRYPOINT +============================================+ #
 class MainApp(ctk.CTk):
@@ -36,19 +36,22 @@ class MainApp(ctk.CTk):
 
         self.title('Tsar Bank')
         self.container = ctk.CTkFrame(self)
-        self.container.pack(fill="both", expand=True)  # Use the appropriate geometry manager
+        self.container.pack(fill="both", expand=True)
 
         self.frames = {}
-        for Page in (MainPage, LoginPage, CreatePage):
+        for Page in (MainPage, LoginPage, CreatePage, LoggedInPage):
             frame = Page(self.container, self)
-            self.frames[Page] = frame
+            self.frames[Page] = frame # personal note - for each class assign a value of its instance
             frame.place(in_=self.container, x=0, y=0, relwidth=1, relheight=1)
 
         self.show_frame(MainPage)
 
-    def show_frame(self, container):
+    def show_frame(self, container, *args, **kwargs):
         frame = self.frames[container]
         frame.tkraise()
+
+        if args or kwargs:
+            frame.update_accnum(*args)
 
 #^ +============================================+ MAIN PAGE +============================================+ #
 class MainPage(ctk.CTkFrame):
@@ -96,12 +99,13 @@ class LoginPage(ctk.CTkFrame):
         height = 55
         labelfont = ('ADLaM Display', 40, 'bold')
         entryfont = ('Bahnschrift Light', 32, 'bold')
-        
+        infolabel = ctk.CTkLabel(self, text='Error!',font=('Bahnschrift Light', 22))
+
         # FRAME TO HOLD ALL
         boxframe = ctk.CTkFrame(self, fg_color='transparent', corner_radius=40)
 
         # BACK BUTTON
-        ButtonManager.create_back_button(self, container, None) # TODO - Add errolabel as arg when done
+        ButtonManager.create_back_button(self, container, infolabel)
 
         # LABELS
         accountnum_label = ctk.CTkLabel(boxframe, text='Account Number:', font=labelfont)
@@ -119,8 +123,38 @@ class LoginPage(ctk.CTkFrame):
 
         boxframe.place(relx=0.5,rely=0.45, anchor=CENTER)
 
+        # SUMBISSION
+        def submit_login():
+            
+            # Make sure to get account number as integer
+            valid_accnum = False
+            try:
+                accnum = int(accountnum_entry.get())
+                valid_accnum = True
+            except ValueError:
+                infolabel.configure(text='⚠️ Account number can only consist on numbers!')
+                infolabel.place(relx=0.5, rely=0.65, anchor=CENTER)
+            # Get password
+            password = password_entry.get()
+
+            # VALIDATION
+            if valid_accnum:
+                if password.isspace() or password == '':
+                    infolabel.configure(text='⚠️ Account number or password field cannot be empty!')
+                    infolabel.place(relx=0.5, rely=0.65, anchor=CENTER)
+                elif not AccountManager.accountnumber_exists(accnum):
+                    infolabel.configure(text='⚠️ Account number not found!')
+                    infolabel.place(relx=0.5, rely=0.65, anchor=CENTER)
+                elif not AccountManager.password_matches(accnum, password):
+                    infolabel.configure(text='⚠️ Please enter the correct password!')
+                    infolabel.place(relx=0.5, rely=0.65, anchor=CENTER)
+                else:
+                    AccountManager.log_into_account(accnum, password, container)
+                    accountnum_entry.delete(0, len(str(accnum)))
+                    password_entry.delete(0, len(password))
+
         # CREATING SUBMIT AND CLEAR BUTTONS
-        ButtonManager.create_bottom_buttons(self, None, [accountnum_entry, password_entry], 320, 0.65, None) # TODO - ADD SUBMIT FUNCTIONALITY
+        ButtonManager.create_bottom_buttons(self, submit_login, [accountnum_entry, password_entry], 320, 0.8, infolabel)
 
 #^ +========================================+ CREATE ACCOUNT PAGE +========================================+ #
 class CreatePage(ctk.CTkFrame):
@@ -218,6 +252,66 @@ class CreatePage(ctk.CTkFrame):
                             image=info_icon, compound=LEFT)
         info.place(relx=0.5, rely=0.9, anchor=CENTER)
 
+#^ +==========================================+ LOGGED IN PAGE +===========================================+ #
+class LoggedInPage(ctk.CTkFrame):
+
+    def __init__(self, parent, container):
+        ctk.CTkFrame.__init__(self, parent)
+        self.current_account = None  # No account selected as of instantiation
+
+        # COMMONS
+        width = 600
+        height = 60
+        buttonfont = ('ADLaM Display', 27, 'bold')
+
+        # BACK BUTTOn
+        ButtonManager.create_back_button(self, container, None)
+
+        # BALANCE LABEL
+        self.balance_label = ctk.CTkLabel(self,
+                                          text='Current Balance: \n$ ',
+                                          font=('ADLaM Display', 60, 'bold'))
+        self.balance_label.place(relx=0.5, rely=0.18, anchor=CENTER)
+
+        # CREDIT BUTTON
+        credit = ctk.CTkButton(self,
+                               text='Credit Money To Account',
+                               font=buttonfont,
+                               width=width,
+                               height=height,
+                               corner_radius=30,
+                               command=lambda: container.show_frame(LoginPage))
+        credit.place(relx=0.5, rely=0.45, anchor=CENTER)
+
+        # DEBIT BUTTON
+        debit = ctk.CTkButton(self,
+                              text='Withdraw Money From Account',
+                              font=buttonfont,
+                              width=width,
+                              height=height,
+                              corner_radius=30,
+                              command=lambda: container.show_frame(LoginPage))
+        debit.place(relx=0.5, rely=0.6, anchor=CENTER)
+
+        # TRANSFER BUTTON
+        transfer = ctk.CTkButton(self,
+                                 text='Transfer Money To Another Account',
+                                 font=buttonfont,
+                                 width=width,
+                                 height=height,
+                                 corner_radius=30,
+                                 command=lambda: container.show_frame(LoginPage))
+        transfer.place(relx=0.5, rely=0.75, anchor=CENTER)
+
+    def update_accnum(self, accnum):
+        self.current_account = accounts[accnum]
+        self.update_balance_label(self.current_account['balance'])  # Call the method to update balance label
+
+    def update_balance_label(self, new_balance):
+        if self.current_account and 'balance' in self.current_account:
+            balance_text = 'Current Balance: \n$ ' + str(new_balance)
+            self.balance_label.configure(text=balance_text)
+
 #^ +==========================================+ ACCOUNT MANAGER +==========================================+ #
 class AccountManager:
 
@@ -235,11 +329,17 @@ class AccountManager:
 
         return accountnumber
     
-    def log_into_account(accountnumer, password) -> dict:
-        return {}
+    def log_into_account(accnum, password, container):
+        container.show_frame(LoggedInPage, accnum)
+        
+    # Helper methods
+    def accountnumber_exists(accnum :int):
+        return True if accnum in accounts.keys() else False
+        
+    def password_matches(accnum, password):
+        return True if accounts[accnum]['password'] == password else False
 
 #^ +==========================================+ BUTTON MANAGER +==========================================+ #
-
 class ButtonManager:
 
     def create_bottom_buttons(container, submitcmd, clearentries, width=320, rely=0.5, infolabel=None):
