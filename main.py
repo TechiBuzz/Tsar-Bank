@@ -9,9 +9,11 @@ import pickle
 ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('green')
 
-# GLOBAL VARS
+# THE HOLY GODLY UPHOLDER (the entire program literally runs on this one single dictionary lol)
 accounts = {}
+
 # LOAD ACCOUNTS FROM DATA FILE
+# feeling paraoud indian bcz i did most of this on my own
 while True:
     try:
         accounts = pickle.load(open('data.pkl', 'rb'))
@@ -20,8 +22,9 @@ while True:
     except FileNotFoundError:
         print('Account data could not be found, created a new file with default data')
         with open('data.pkl', 'wb') as file:
-            pickle.dump({1000:{'name':'example','password':'examplepassword','age':69}}, file)
+            pickle.dump({1000000:{'name':'example','password':'examplepassword','age':69,'balance':0}}, file)
 
+# +============================================+ ENTRYPOINT +============================================+ #
 class MainApp(ctk.CTk):
     def __init__(self):
         ctk.CTk.__init__(self) # Call super
@@ -42,6 +45,7 @@ class MainApp(ctk.CTk):
         frame = self.frames[container]
         frame.tkraise()
 
+# +============================================+ MAIN PAGE +============================================+ #
 class MainPage(ctk.CTkFrame):
     def __init__(self, parent, container):
         ctk.CTkFrame.__init__(self, parent) # Call super
@@ -76,6 +80,7 @@ class MainPage(ctk.CTkFrame):
                command=lambda: container.show_frame(CreatePage))
         create.place(relx=0.5, rely=0.6, anchor=CENTER)
 
+# +========================================+ LOGIN ACCOUNT PAGE +========================================+ #
 class LoginPage(ctk.CTkFrame):
 
     def __init__(self, parent, container):
@@ -86,8 +91,7 @@ class LoginPage(ctk.CTkFrame):
         height = 55
         labelfont = ('ADLaM Display', 40, 'bold')
         entryfont = ('Bahnschrift Light', 32, 'bold')
-        errorlabel = ctk.CTkLabel(self, text='Username or Password is invalid!',font=('Bahnschrift Light', 22))
-
+        
         # FRAME TO HOLD ALL
         boxframe = ctk.CTkFrame(self, fg_color='transparent', corner_radius=40)
 
@@ -117,30 +121,7 @@ class LoginPage(ctk.CTkFrame):
                command=lambda: container.show_frame(MainPage))
         back.place(relx=0.1, rely=0.1, anchor=CENTER)
     
-        # SUBMIT BUTTON FUNCTIONALITY
-        def submit_login():
-            username = username_entry.get()
-            password = password_entry.get()
-            
-            if username == '' or password == '':
-                errorlabel.place(relx=0.5, rely=0.6, anchor=CENTER)
-            else: 
-                errorlabel.place_forget() # Remove the error
-                username_entry.delete(0, len(username)) # Clear username entry box
-                password_entry.delete(0, len(password)) # Clear password entry box
-                AccountManager.create_new_account(username=username, password=password, age=1)
-                print(accounts)
-
-        # SUBMIT BUTTON
-        submit = ctk.CTkButton(self,
-               text='Submit',
-               font=('ADLaM Display', 22, 'bold'),
-               width=500,
-               height=50,
-               corner_radius=30,
-               command=submit_login)
-        submit.place(relx=0.5, rely=0.7, anchor=CENTER)
-
+# +========================================+ CREATE ACCOUNT PAGE +========================================+ #
 class CreatePage(ctk.CTkFrame):
     def __init__(self, parent, container):
         ctk.CTkFrame.__init__(self, parent)  # Call super
@@ -150,7 +131,9 @@ class CreatePage(ctk.CTkFrame):
         height = 55
         labelfont = ('ADLaM Display', 40, 'bold')
         entryfont = ('Bahnschrift Light', 32, 'bold')
-
+        errorlabel = ctk.CTkLabel(self, text='Error!',font=('Bahnschrift Light', 22))
+        # 'Age must be an integer!'
+        # 'Invalid Username or Password! Don\'t leave anything empty!'
         # FRAME TO HOLD ALL
         boxframe = ctk.CTkFrame(self, fg_color='transparent', corner_radius=40)
 
@@ -174,7 +157,7 @@ class CreatePage(ctk.CTkFrame):
         age_entry = ctk.CTkEntry(boxframe, width=width, height=height, font=entryfont, corner_radius=50)
         age_entry.grid(row=2,column=1, pady=8)
 
-        boxframe.place(relx=0.5,rely=0.5, anchor=CENTER)
+        boxframe.place(relx=0.5,rely=0.4, anchor=CENTER)
 
         # BACK BUTTON
         back = ctk.CTkButton(self,
@@ -186,6 +169,43 @@ class CreatePage(ctk.CTkFrame):
                command=lambda: container.show_frame(MainPage))
         back.place(relx=0.1, rely=0.1, anchor=CENTER)
 
+        # SUBMIT BUTTON FUNCTIONALITY
+        def submit_login():
+
+            username = username_entry.get()
+            password = password_entry.get()
+            age = age_entry.get()
+
+            # VALIDATION
+            if username == '' or password == '':
+                errorlabel.configure(text='Invalid Username or Password! Don\'t leave anything empty!')
+                errorlabel.place(relx=0.5, rely=0.6, anchor=CENTER)
+            elif password.__contains__(' '):
+                errorlabel.configure(text='Password cannot contain whitespaces!')
+                errorlabel.place(relx=0.5, rely=0.6, anchor=CENTER)
+            elif not age.isdigit():
+                errorlabel.place_forget() # Remove the previous error
+                errorlabel.configure(text='Age must be an integer!')
+                errorlabel.place(relx=0.5, rely=0.6, anchor=CENTER)
+            else: 
+                errorlabel.place_forget() # Remove the error
+            
+                username_entry.delete(0, len(username)) # Clear username entry box
+                password_entry.delete(0, len(password)) # Clear password entry box
+                age_entry.delete(0, len(age)) # Clear age entry box
+                AccountManager.create_new_account(username=username, password=password, age=age)
+                container.show_frame(MainPage)
+
+        # SUBMIT BUTTON
+        submit = ctk.CTkButton(self,
+               text='Submit',
+               font=('ADLaM Display', 22, 'bold'),
+               width=500,
+               height=50,
+               corner_radius=30,
+               command=submit_login)
+        submit.place(relx=0.5, rely=0.7, anchor=CENTER)
+
         # INFORMATICS
         info_icon = ctk.CTkImage(dark_image=Image.open('info.png'))
         info = ctk.CTkLabel(self, 
@@ -194,18 +214,25 @@ class CreatePage(ctk.CTkFrame):
                             image=info_icon, compound=LEFT)
         info.place(relx=0.5, rely=0.9, anchor=CENTER)
 
-class AccountManager():
-    def create_new_account(username, password, age: int):
+# +==========================================+ ACCOUNT MANAGER +==========================================+ #
+class AccountManager:
 
-        accountnumber = random.randint(1000, 9999)
-        while accountnumber in accounts.keys():
-            accountnumber = random.randint(1000, 9999)
-        print(accountnumber)
+    # Method to create new account (its self explanatory)
+    def create_new_account(username, password, age):
+        # Create random account number
+        accountnumber = random.randint(1000000, 9999999)
+        while accountnumber in accounts.keys(): # Make sure account number is unique
+            accountnumber = random.randint(1000000, 9999999)
 
-        accounts.update({accountnumber : {'name':username,'password':password,'age':age}})
-
+        # Update dictionaty and file
+        accounts.update({accountnumber : {'name':username,'password':password,'age':age,'balance':0}})
         with open('data.pkl', 'wb') as file:
             pickle.dump(accounts, file)
+
+    def log_into_account(accountnumer, password) -> dict:
+        return {}
+
+# +============================================+ ENTRYPOINT +============================================+ #
 
 if __name__ == "__main__":
     app = MainApp()
