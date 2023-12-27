@@ -96,30 +96,29 @@ class LoginPage(ctk.CTkFrame):
         boxframe = ctk.CTkFrame(self, fg_color='transparent', corner_radius=40)
 
         # LABELS
-        username_label = ctk.CTkLabel(boxframe, text='Username:', font=labelfont)
-        username_label.grid(row=0,column=0, padx=10, pady=8)
+        accountnum_label = ctk.CTkLabel(boxframe, text='Account Number:', font=labelfont)
+        accountnum_label.grid(row=0,column=0, padx=10, pady=8)
 
         password_label = ctk.CTkLabel(boxframe, text='Password:', font=labelfont)
-        password_label.grid(row=1,column=0, padx=10, pady=8)
+        password_label.grid(row=1,column=0, padx=10, pady=8, sticky='w')
 
         # ENTRIES
-        username_entry = ctk.CTkEntry(boxframe, width=width, height=height, font=entryfont, corner_radius=50)
-        username_entry.grid(row=0,column=1, pady=8)
+        accountnum_entry = ctk.CTkEntry(boxframe, width=width, height=height, font=entryfont, corner_radius=50)
+        accountnum_entry.grid(row=0,column=1, pady=8)
 
         password_entry = ctk.CTkEntry(boxframe, width=width, height=height, font=entryfont, show='*', corner_radius=50)
         password_entry.grid(row=1,column=1, pady=8)
 
         boxframe.place(relx=0.5,rely=0.45, anchor=CENTER)
 
+        # FRAME TO HOLD SUBMIT AND CLEAR BUTTONS
+        lowerframe = ctk.CTkFrame(self, fg_color='transparent')
+        lowerframe.place(relx=0.5, rely=0.7, anchor=CENTER)
+        # CREATING SUBMIT AND CLEAR BUTTONS
+        ButtonManager.create_bottom_buttons(lowerframe, None, [accountnum_entry, password_entry], 320)
+
         # BACK BUTTON
-        back = ctk.CTkButton(self,
-               text='Back',
-               font=('ADLaM Display', 22, 'bold'),
-               width=80,
-               height=50,
-               corner_radius=30,
-               command=lambda: container.show_frame(MainPage))
-        back.place(relx=0.1, rely=0.1, anchor=CENTER)
+        ButtonManager.create_back_button(self, container)
     
 # +========================================+ CREATE ACCOUNT PAGE +========================================+ #
 class CreatePage(ctk.CTkFrame):
@@ -135,7 +134,10 @@ class CreatePage(ctk.CTkFrame):
         # 'Age must be an integer!'
         # 'Invalid Username or Password! Don\'t leave anything empty!'
         # FRAME TO HOLD ALL
-        boxframe = ctk.CTkFrame(self, fg_color='transparent', corner_radius=40)
+        boxframe = ctk.CTkFrame(self, fg_color='transparent')
+
+        # BACK BUTTON
+        ButtonManager.create_back_button(self, container)
 
         # LABELS
         username_label = ctk.CTkLabel(boxframe, text='Username:', font=labelfont)
@@ -159,19 +161,9 @@ class CreatePage(ctk.CTkFrame):
 
         boxframe.place(relx=0.5,rely=0.4, anchor=CENTER)
 
-        # BACK BUTTON
-        back = ctk.CTkButton(self,
-               text='Back',
-               font=('ADLaM Display', 22, 'bold'),
-               width=80,
-               height=50,
-               corner_radius=30,
-               command=lambda: container.show_frame(MainPage))
-        back.place(relx=0.1, rely=0.1, anchor=CENTER)
-
         # SUBMIT BUTTON FUNCTIONALITY
-        def submit_login():
-
+        def submit_create():
+            # TAKE STUFF
             username = username_entry.get()
             password = password_entry.get()
             age = age_entry.get()
@@ -179,14 +171,17 @@ class CreatePage(ctk.CTkFrame):
             # VALIDATION
             if username == '' or password == '':
                 errorlabel.configure(text='Invalid Username or Password! Don\'t leave anything empty!')
-                errorlabel.place(relx=0.5, rely=0.6, anchor=CENTER)
+                errorlabel.place(relx=0.5, rely=0.61, anchor=CENTER)
+            elif not username.isalpha():
+                errorlabel.configure(text='Username cannot contain numbers!')
+                errorlabel.place(relx=0.5, rely=0.61, anchor=CENTER)
             elif password.__contains__(' '):
                 errorlabel.configure(text='Password cannot contain whitespaces!')
-                errorlabel.place(relx=0.5, rely=0.6, anchor=CENTER)
+                errorlabel.place(relx=0.5, rely=0.61, anchor=CENTER)
             elif not age.isdigit():
                 errorlabel.place_forget() # Remove the previous error
                 errorlabel.configure(text='Age must be an integer!')
-                errorlabel.place(relx=0.5, rely=0.6, anchor=CENTER)
+                errorlabel.place(relx=0.5, rely=0.61, anchor=CENTER)
             else: 
                 errorlabel.place_forget() # Remove the error
             
@@ -196,15 +191,18 @@ class CreatePage(ctk.CTkFrame):
                 AccountManager.create_new_account(username=username, password=password, age=age)
                 container.show_frame(MainPage)
 
-        # SUBMIT BUTTON
-        submit = ctk.CTkButton(self,
-               text='Submit',
-               font=('ADLaM Display', 22, 'bold'),
-               width=500,
-               height=50,
-               corner_radius=30,
-               command=submit_login)
-        submit.place(relx=0.5, rely=0.7, anchor=CENTER)
+        # # CLEAR BUTTON FUNCTIONALITY
+        # def clear_entries():
+        #     errorlabel.place_forget() # Remove the error label
+        #     username_entry.delete(0, len(username_entry.get())) # Clear username entry box
+        #     password_entry.delete(0, len(password_entry.get())) # Clear password entry box
+        #     age_entry.delete(0, len(age_entry.get())) # Clear age entry box
+
+        # FRAME TO HOLD SUBMIT AND CLEAR BUTTONS
+        lowerframe = ctk.CTkFrame(self, fg_color='transparent')
+        lowerframe.place(relx=0.5, rely=0.7, anchor=CENTER)
+        # CREATING SUBMIT AND CLEAR BUTTONS
+        ButtonManager.create_bottom_buttons(lowerframe, submit_create, [username_entry, password_entry, age_entry], 320)     
 
         # INFORMATICS
         info_icon = ctk.CTkImage(dark_image=Image.open('info.png'))
@@ -231,6 +229,43 @@ class AccountManager:
 
     def log_into_account(accountnumer, password) -> dict:
         return {}
+
+# +==========================================+ COMMON BUTTONS +==========================================+ #
+
+class ButtonManager:
+
+    def create_bottom_buttons(container, submitcmd, clearentries, width=320):
+
+        # Clear button functionality
+        def clear_entries(entries=clearentries):
+            for entry in entries: entry.delete(0, len(entry.get()))
+
+        submit = ctk.CTkButton(container,
+               text='Submit',
+               font=('ADLaM Display', 22, 'bold'),
+               width=width,
+               height=50,
+               corner_radius=30,
+               command=submitcmd)
+        clear = ctk.CTkButton(container,
+               text='Clear',
+               font=('ADLaM Display', 22, 'bold'),
+               width=width,
+               height=50,
+               corner_radius=30,
+               command=clear_entries)
+        submit.pack(side=LEFT, padx=10)
+        clear.pack(side=RIGHT, padx=10)
+
+    def create_back_button(container, main):
+        back = ctk.CTkButton(container,
+               text='Back',
+               font=('ADLaM Display', 22, 'bold'),
+               width=80,
+               height=50,
+               corner_radius=30,
+               command=lambda: main.show_frame(MainPage))
+        back.place(relx=0.1, rely=0.1, anchor=CENTER)
 
 # +============================================+ ENTRYPOINT +============================================+ #
 
