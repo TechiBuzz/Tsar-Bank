@@ -10,7 +10,7 @@ import pickle
 #^ +=========================================+ CUSTOM TKINTER +==========================================+ #
 
 ctk.set_appearance_mode('dark')
-ctk.set_default_color_theme('green')
+ctk.set_default_color_theme('dark-blue')
 
 #^ +===========================================+ GOD SECTION +===========================================+ #
 
@@ -27,7 +27,7 @@ while True:
     except FileNotFoundError:
         print('Account data could not be found, created a new file with default data')
         with open('data.pkl', 'wb') as file:
-            pickle.dump({1000000:{'name':'Example','password':'pass','age':69,'balance':69420}}, file)
+            pickle.dump({10000:{'name':'Example','password':'pass','age':70,'balance':5000}}, file)
 
 #^ +============================================+ COMMON VARS +============================================+ #
 
@@ -59,7 +59,7 @@ class MainApp(ctk.CTk):
 
         if args:
             frame.update_current_account(*args)
-
+            
 #^ +============================================+ MAIN PAGE +============================================+ #
 class MainPage(ctk.CTkFrame):
     def __init__(self, parent, container):
@@ -244,7 +244,7 @@ class CreatePage(ctk.CTkFrame):
                 infolabel.place(relx=0.5, rely=0.66, anchor=CENTER)
 
         # INFORMATICS
-        info_icon = ctk.CTkImage(dark_image=Image.open('info.png'))
+        info_icon = ctk.CTkImage(dark_image=Image.open('icons/info.png'))
         info = ctk.CTkLabel(self, 
                             text='  Please ensure the details are correct as once submitted they cannot be changed!',
                             font=('Bahnschrift Light', 16),
@@ -441,7 +441,7 @@ class LoggedInPage(ctk.CTkFrame):
         self.username_label = ctk.CTkLabel(self,
                                           text='',
                                           font=('ADLaM Display', 45, 'bold'),
-                                          image=ctk.CTkImage(dark_image=Image.open('user.png'), size=(120,120)), compound=TOP)
+                                          image=ctk.CTkImage(dark_image=Image.open('icons/user.png'), size=(120,120)), compound=TOP)
         self.username_label.place(relx=0.5, rely=0.22, anchor=CENTER)
 
         # BALANCE LABEL
@@ -502,9 +502,9 @@ class AccountManager:
     # Method to create new account (its self explanatory)
     def create_new_account(username, password, age) -> int:
         # Create random account number
-        accountnumber = random.randint(1000000, 9999999)
+        accountnumber = random.randint(10000, 99999)
         while accountnumber in accounts.keys(): # Make sure account number is unique
-            accountnumber = random.randint(1000000, 9999999)
+            accountnumber = random.randint(10000, 99999)
 
         # Update dictionaty and file
         accounts.update({accountnumber : {'name':username,'password':password,'age':age,'balance':0}})
