@@ -27,7 +27,14 @@ while True:
     except FileNotFoundError:
         print('Account data could not be found, created a new file with default data')
         with open('data.pkl', 'wb') as file:
-            pickle.dump({1000000:{'name':'example','password':'examplepassword','age':69,'balance':69420}}, file)
+            pickle.dump({1000000:{'name':'example','password':'pass','age':69,'balance':69420}}, file)
+
+#^ +============================================+ COMMON VARS +============================================+ #
+
+common_width = 450
+common_height = 55
+common_labelfont = ('ADLaM Display', 40, 'bold')
+common_entryfont = ('Bahnschrift Light', 32, 'bold')
 
 #^ +============================================+ ENTRYPOINT +============================================+ #
 class MainApp(ctk.CTk):
@@ -39,19 +46,19 @@ class MainApp(ctk.CTk):
         self.container.pack(fill="both", expand=True)
 
         self.frames = {}
-        for Page in (MainPage, LoginPage, CreatePage, LoggedInPage):
+        for Page in (MainPage, LoginPage, CreatePage, LoggedInPage, CreditPage, WithdrawPage):
             frame = Page(self.container, self)
             self.frames[Page] = frame # personal note - for each class assign a value of its instance
             frame.place(in_=self.container, x=0, y=0, relwidth=1, relheight=1)
 
         self.show_frame(MainPage)
 
-    def show_frame(self, container, *args, **kwargs):
+    def show_frame(self, container, *args):
         frame = self.frames[container]
         frame.tkraise()
 
-        if args or kwargs:
-            frame.update_accnum(*args)
+        if args:
+            frame.update_current_account(*args)
 
 #^ +============================================+ MAIN PAGE +============================================+ #
 class MainPage(ctk.CTkFrame):
@@ -94,31 +101,24 @@ class LoginPage(ctk.CTkFrame):
     def __init__(self, parent, container):
         ctk.CTkFrame.__init__(self, parent)  # Call super
 
-        # COMMONS
-        width = 450
-        height = 55
-        labelfont = ('ADLaM Display', 40, 'bold')
-        entryfont = ('Bahnschrift Light', 32, 'bold')
+        # INFO THINGY
         infolabel = ctk.CTkLabel(self, text='Error!',font=('Bahnschrift Light', 22))
 
         # FRAME TO HOLD ALL
         boxframe = ctk.CTkFrame(self, fg_color='transparent', corner_radius=40)
 
-        # BACK BUTTON
-        ButtonManager.create_back_button(self, container, infolabel)
-
         # LABELS
-        accountnum_label = ctk.CTkLabel(boxframe, text='Account Number:', font=labelfont)
+        accountnum_label = ctk.CTkLabel(boxframe, text='Account Number:', font=common_labelfont)
         accountnum_label.grid(row=0,column=0, padx=10, pady=8)
 
-        password_label = ctk.CTkLabel(boxframe, text='Password:', font=labelfont)
+        password_label = ctk.CTkLabel(boxframe, text='Password:', font=common_labelfont)
         password_label.grid(row=1,column=0, padx=10, pady=8, sticky='w')
 
         # ENTRIES
-        accountnum_entry = ctk.CTkEntry(boxframe, width=width, height=height, font=entryfont, corner_radius=50)
+        accountnum_entry = ctk.CTkEntry(boxframe, width=common_width, height=common_height, font=common_entryfont, corner_radius=50)
         accountnum_entry.grid(row=0,column=1, pady=8)
 
-        password_entry = ctk.CTkEntry(boxframe, width=width, height=height, font=entryfont, show='*', corner_radius=50)
+        password_entry = ctk.CTkEntry(boxframe, width=common_width, height=common_height, font=common_entryfont, show='*', corner_radius=50)
         password_entry.grid(row=1,column=1, pady=8)
 
         boxframe.place(relx=0.5,rely=0.45, anchor=CENTER)
@@ -149,12 +149,15 @@ class LoginPage(ctk.CTkFrame):
                     infolabel.configure(text='⚠️ Please enter the correct password!')
                     infolabel.place(relx=0.5, rely=0.65, anchor=CENTER)
                 else:
-                    AccountManager.log_into_account(accnum, password, container)
+                    AccountManager.log_into_account(accnum, container)
                     accountnum_entry.delete(0, len(str(accnum)))
                     password_entry.delete(0, len(password))
 
         # CREATING SUBMIT AND CLEAR BUTTONS
         ButtonManager.create_bottom_buttons(self, submit_login, [accountnum_entry, password_entry], 320, 0.8, infolabel)
+
+        # BACK BUTTON
+        ButtonManager.create_back_button(self, container, infolabel, entries=[accountnum_entry, password_entry])
 
 #^ +========================================+ CREATE ACCOUNT PAGE +========================================+ #
 class CreatePage(ctk.CTkFrame):
@@ -162,37 +165,30 @@ class CreatePage(ctk.CTkFrame):
     def __init__(self, parent, container):
         ctk.CTkFrame.__init__(self, parent)  # Call super
 
-        # COMMONS
-        width = 450
-        height = 55
-        labelfont = ('ADLaM Display', 40, 'bold')
-        entryfont = ('Bahnschrift Light', 32, 'bold')
+        # INFO THINGY
         infolabel = ctk.CTkLabel(self, text='Error!',font=('Bahnschrift Light', 22))
 
         # FRAME TO HOLD ALL
         boxframe = ctk.CTkFrame(self, fg_color='transparent')
 
-        # BACK BUTTON
-        ButtonManager.create_back_button(self, container, infolabel)
-
         # LABELS
-        username_label = ctk.CTkLabel(boxframe, text='Username:', font=labelfont)
+        username_label = ctk.CTkLabel(boxframe, text='Username:', font=common_labelfont)
         username_label.grid(row=0,column=0, padx=10, pady=8)
 
-        password_label = ctk.CTkLabel(boxframe, text='Password:', font=labelfont)
+        password_label = ctk.CTkLabel(boxframe, text='Password:', font=common_labelfont)
         password_label.grid(row=1,column=0, padx=10, pady=8, sticky='w')
         
-        age_label = ctk.CTkLabel(boxframe, text='Age:', font=labelfont)
+        age_label = ctk.CTkLabel(boxframe, text='Age:', font=common_labelfont)
         age_label.grid(row=2,column=0, padx=10, pady=8, sticky='w')
 
         # ENTRIES
-        username_entry = ctk.CTkEntry(boxframe, width=width, height=height, font=entryfont, corner_radius=50)
+        username_entry = ctk.CTkEntry(boxframe, width=common_width, height=common_height, font=common_entryfont, corner_radius=50)
         username_entry.grid(row=0,column=1, pady=8)
 
-        password_entry = ctk.CTkEntry(boxframe, width=width, height=height, font=entryfont, show='*', corner_radius=50)
+        password_entry = ctk.CTkEntry(boxframe, width=common_width, height=common_height, font=common_entryfont, show='*', corner_radius=50)
         password_entry.grid(row=1,column=1, pady=8)
         
-        age_entry = ctk.CTkEntry(boxframe, width=width, height=height, font=entryfont, corner_radius=50)
+        age_entry = ctk.CTkEntry(boxframe, width=common_width, height=common_height, font=common_entryfont, corner_radius=50)
         age_entry.grid(row=2,column=1, pady=8)
 
         boxframe.place(relx=0.5,rely=0.4, anchor=CENTER)
@@ -241,9 +237,6 @@ class CreatePage(ctk.CTkFrame):
                 infolabel.configure(text=infotext)
                 infolabel.place(relx=0.5, rely=0.66, anchor=CENTER)
 
-        # CREATING SUBMIT AND CLEAR BUTTONS
-        ButtonManager.create_bottom_buttons(self, submit_create, [username_entry, password_entry, age_entry], 320, 0.8, infolabel)     
-
         # INFORMATICS
         info_icon = ctk.CTkImage(dark_image=Image.open('info.png'))
         info = ctk.CTkLabel(self, 
@@ -252,64 +245,201 @@ class CreatePage(ctk.CTkFrame):
                             image=info_icon, compound=LEFT)
         info.place(relx=0.5, rely=0.9, anchor=CENTER)
 
+        # CREATING SUBMIT AND CLEAR BUTTONS
+        ButtonManager.create_bottom_buttons(self, submit_create, [username_entry, password_entry, age_entry], 320, 0.8, infolabel)     
+
+        # BACK BUTTON
+        ButtonManager.create_back_button(self, container, infolabel, entries=[username_entry, password_entry, age_entry])
+
 #^ +==========================================+ LOGGED IN PAGE +===========================================+ #
+class PageHelper:
+
+    def create_box_page(textlabel ,master, container, submitcmd,two_boxes=False, infolabel=None):
+        
+        master.text = ctk.CTkLabel(master, width=600, height=70, font=('ADLaM Display', 45, 'bold'), corner_radius=50, text=textlabel)
+        master.text.place(relx=0.5, rely=0.34, anchor=CENTER)
+
+        master.entrybox = ctk.CTkEntry(master, width=600, height=70, font=common_entryfont, corner_radius=50)
+        master.entrybox.place(relx=0.5, rely=0.46, anchor=CENTER)
+
+        if two_boxes:
+            master.entrybox = ctk.CTkEntry(master, width=600, height=70, font=common_entryfont, corner_radius=50)
+            master.entrybox.place(relx=0.5, rely=0.46, anchor=CENTER)
+
+        master.infolabel = ctk.CTkLabel(master, text='Error!',font=('Bahnschrift Light', 22))
+
+        ButtonManager.create_bottom_buttons(master, submitcmd, [master.entrybox], rely=0.8, width=290, infolabel=master.infolabel)
+        ButtonManager.create_back_button(master, container, master.infolabel, entries=[master.entrybox], page_to_go=LoggedInPage)
+
+class CreditPage(ctk.CTkFrame):
+    def __init__(self, parent, container):
+        ctk.CTkFrame.__init__(self, parent)
+
+        self.text = self.entrybox = self.infolabel = self.current_account = None
+
+        def submit_credit():
+            credit_amt = self.entrybox.get()
+            infolabel = self.infolabel
+
+            if not credit_amt.isdigit():
+                infolabel.configure(text='⚠️ Credit amount must be an integer!')
+                infolabel.place(relx=0.5, rely=0.62, anchor=CENTER)
+            else:
+                self.entrybox.delete(0, len(credit_amt)) # Clear entrybox
+
+                new_balance = self.current_account['balance'] + int(credit_amt)
+                self.current_account.update({'balance':new_balance})
+                
+                with open('data.pkl', 'wb') as file:
+                    pickle.dump(accounts, file)
+
+                container.frames[LoggedInPage].update_balance_label(new_balance)
+
+                success_text = '✅ Successfully credited $' + credit_amt + '\n New Balance is: $' + str(self.current_account['balance'])
+                infolabel.configure(text=success_text)
+                infolabel.place(relx=0.5, rely=0.62, anchor=CENTER)
+
+        PageHelper.create_box_page('Enter amount to credit:',self, container, submit_credit, self.infolabel)
+
+    # Set account number for session
+    def update_current_account(self, accnum): self.current_account = accounts[accnum]
+
+class WithdrawPage(ctk.CTkFrame):
+    def __init__(self, parent, container):
+        ctk.CTkFrame.__init__(self, parent)
+
+        self.text = self.entrybox = self.infolabel = self.current_account = None
+
+        def submit_withdraw():
+            credit_amt = self.entrybox.get()
+            infolabel = self.infolabel
+
+            if not credit_amt.isdigit():
+                infolabel.configure(text='⚠️ Withdraw amount must be a positive integer!')
+                infolabel.place(relx=0.5, rely=0.62, anchor=CENTER)
+            elif int(credit_amt) == 0:
+                infolabel.configure(text='⚠️ Minimum withdrawal is of $1!')
+                infolabel.place(relx=0.5, rely=0.62, anchor=CENTER)
+            elif self.current_account['balance'] < int(credit_amt):
+                infolabel.configure(text='⚠️ Not enought balance in account!')
+                infolabel.place(relx=0.5, rely=0.62, anchor=CENTER)
+            else:
+                self.entrybox.delete(0, len(credit_amt)) # Clear entrybox
+
+                new_balance = self.current_account['balance'] - int(credit_amt)
+                self.current_account.update({'balance':new_balance})
+                
+                with open('data.pkl', 'wb') as file:
+                    pickle.dump(accounts, file)
+
+                container.frames[LoggedInPage].update_balance_label(new_balance)
+
+                success_text = '✅ Successfully debited $' + credit_amt + '\n New Balance is: $' + str(self.current_account['balance'])
+                infolabel.configure(text=success_text)
+                infolabel.place(relx=0.5, rely=0.62, anchor=CENTER)
+        
+        PageHelper.create_box_page('Enter amount to withdraw:',self, container, submit_withdraw, self.infolabel)
+
+    # Set account number for session
+    def update_current_account(self, accnum): self.current_account = accounts[accnum]
+
+class TransferPage(ctk.CTkFrame):
+    def __init__(self, parent, container):
+        ctk.CTkFrame.__init__(self, parent)
+
+        self.text = self.entrybox = self.infolabel = self.current_account = None
+
+        def submit_transfer():
+            transfer_amt = self.entrybox.get()
+            infolabel = self.infolabel
+
+            if not transfer_amt.isdigit():
+                infolabel.configure(text='⚠️ Withdraw amount must be a positive integer!')
+                infolabel.place(relx=0.5, rely=0.62, anchor=CENTER)
+            elif int(transfer_amt) == 0:
+                infolabel.configure(text='⚠️ Minimum withdrawal is of $1!')
+                infolabel.place(relx=0.5, rely=0.62, anchor=CENTER)
+            elif self.current_account['balance'] < int(transfer_amt):
+                infolabel.configure(text='⚠️ Not enought balance in account!')
+                infolabel.place(relx=0.5, rely=0.62, anchor=CENTER)
+            else:
+                self.entrybox.delete(0, len(transfer_amt)) # Clear entrybox
+
+                new_balance = self.current_account['balance'] - int(transfer_amt)
+                self.current_account.update({'balance':new_balance})
+                
+                with open('data.pkl', 'wb') as file:
+                    pickle.dump(accounts, file)
+
+                container.frames[LoggedInPage].update_balance_label(new_balance)
+
+                success_text = '✅ Successfully transfered $' + transfer_amt + '\n New Balance is: $' + str(self.current_account['balance'])
+                infolabel.configure(text=success_text)
+                infolabel.place(relx=0.5, rely=0.62, anchor=CENTER)
+        
+        PageHelper.create_box_page('Enter amount to withdraw:',self, container, submit_transfer, self.infolabel)
+
+    # Set account number for session
+    def update_current_account(self, accnum): self.current_account = accounts[accnum]
+
 class LoggedInPage(ctk.CTkFrame):
 
     def __init__(self, parent, container):
         ctk.CTkFrame.__init__(self, parent)
-        self.current_account = None  # No account selected as of instantiation
+        self.current_account = self.current_account_number = None  # No account selected as of instantiation
 
         # COMMONS
         width = 600
         height = 60
         buttonfont = ('ADLaM Display', 27, 'bold')
 
-        # BACK BUTTOn
-        ButtonManager.create_back_button(self, container, None)
+        # BACK BUTTON
+        ButtonManager.create_back_button(self, container, page_to_go=LoginPage)
 
         # BALANCE LABEL
         self.balance_label = ctk.CTkLabel(self,
-                                          text='Current Balance: \n$ ',
+                                          text='Current Balance \n$ ',
                                           font=('ADLaM Display', 60, 'bold'))
-        self.balance_label.place(relx=0.5, rely=0.18, anchor=CENTER)
+        self.balance_label.place(relx=0.5, rely=0.31, anchor=CENTER)
 
         # CREDIT BUTTON
         credit = ctk.CTkButton(self,
-                               text='Credit Money To Account',
+                               text='Credit Money',
                                font=buttonfont,
                                width=width,
                                height=height,
                                corner_radius=30,
-                               command=lambda: container.show_frame(LoginPage))
-        credit.place(relx=0.5, rely=0.45, anchor=CENTER)
+                               command=lambda: container.show_frame(CreditPage, self.current_account_number))
+        credit.place(relx=0.5, rely=0.54, anchor=CENTER)
 
-        # DEBIT BUTTON
-        debit = ctk.CTkButton(self,
-                              text='Withdraw Money From Account',
+        # WITHDRAW BUTTON
+        withdraw = ctk.CTkButton(self,
+                              text='Withdraw Money',
                               font=buttonfont,
                               width=width,
                               height=height,
                               corner_radius=30,
-                              command=lambda: container.show_frame(LoginPage))
-        debit.place(relx=0.5, rely=0.6, anchor=CENTER)
+                              command=lambda: container.show_frame(WithdrawPage, self.current_account_number))
+        withdraw.place(relx=0.5, rely=0.66, anchor=CENTER)
 
         # TRANSFER BUTTON
         transfer = ctk.CTkButton(self,
-                                 text='Transfer Money To Another Account',
+                                 text='Transfer Money',
                                  font=buttonfont,
                                  width=width,
                                  height=height,
                                  corner_radius=30,
                                  command=lambda: container.show_frame(LoginPage))
-        transfer.place(relx=0.5, rely=0.75, anchor=CENTER)
+        transfer.place(relx=0.5, rely=0.78, anchor=CENTER)
 
-    def update_accnum(self, accnum):
+    def update_current_account(self, accnum):
+        self.current_account_number = accnum
         self.current_account = accounts[accnum]
         self.update_balance_label(self.current_account['balance'])  # Call the method to update balance label
 
     def update_balance_label(self, new_balance):
         if self.current_account and 'balance' in self.current_account:
-            balance_text = 'Current Balance: \n$ ' + str(new_balance)
+            balance_text = 'Current Balance \n$ ' + str(new_balance)
             self.balance_label.configure(text=balance_text)
 
 #^ +==========================================+ ACCOUNT MANAGER +==========================================+ #
@@ -329,20 +459,21 @@ class AccountManager:
 
         return accountnumber
     
-    def log_into_account(accnum, password, container):
+    # Helper methods
+    def log_into_account(accnum :int, container):
         container.show_frame(LoggedInPage, accnum)
         
-    # Helper methods
     def accountnumber_exists(accnum :int):
         return True if accnum in accounts.keys() else False
         
     def password_matches(accnum, password):
         return True if accounts[accnum]['password'] == password else False
-
+    
 #^ +==========================================+ BUTTON MANAGER +==========================================+ #
 class ButtonManager:
 
-    def create_bottom_buttons(container, submitcmd, clearentries, width=320, rely=0.5, infolabel=None):
+    # CREATE SUBMIT AND CLEAR BUTTON
+    def create_bottom_buttons(container, submitcmd, clearentries=[], width=320, rely=0.5, infolabel=None):
 
         # Clear button functionality
         def clear_entries(entries=clearentries):
@@ -372,9 +503,11 @@ class ButtonManager:
         submit.pack(side=LEFT, padx=10)
         clear.pack(side=RIGHT, padx=10)
 
-    def create_back_button(container, main, infolabel):
-        def go_back():
-            main.show_frame(MainPage)
+    # CREATE BACK BUTTON
+    def create_back_button(container, main, infolabel=None, entries=[], page_to_go=MainPage):
+        def go_back(page=page_to_go):
+            main.show_frame(page)
+            for entry in entries: entry.delete(0, len(entry.get()))
             if infolabel:
                 infolabel.place_forget() # Remove the infolabel
 
