@@ -1,4 +1,4 @@
-+-+====================+-+ TSAR BANK +-+====================+-+
++-+===============================================+-+ TSAR BANK +-+==============================================+-+
 
 [>] Required Libraries
 - Install the following libraries (using cmd prompt)
@@ -15,3 +15,5 @@
 - Make sure to install the required libraries before trying to run the file
 - You can delete the data.pkl file to reset all the accounts (only one account called Example User will remain)
 - To view the existing accounts and their details, you can use the file inside the debug folder
+
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
