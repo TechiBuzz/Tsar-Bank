@@ -14,11 +14,10 @@ ctk.set_default_color_theme('dark-blue')
 
 #^ +===========================================+ GOD SECTION +===========================================+ #
 
-# THE HOLY GODLY UPHOLDER (the entire program literally runs on this one single dictionary lol)
+# Main Account Storage
 accounts = {}
 
 # LOAD ACCOUNTS FROM DATA FILE
-# feeling paraoud indian bcz i did most of this on my own
 while True:
     try:
         accounts = pickle.load(open('data.pkl', 'rb'))
